@@ -43,7 +43,9 @@
         let changing_direction = false;
 
         let food_x;
-        let food_y
+        let food_y;
+        let rarefood_x;
+        let rarefood_y;
         let dx = 10;
         let dy = 0;
 
@@ -71,6 +73,9 @@
                 move_snake();
                 drawSnake();
                 main();
+                if (has_game_ended() === true) {
+                    window.location.reload(false); 
+                }
             }, 100)
         }
 
@@ -91,6 +96,13 @@
             board_ctx.strokeStyle = "green";
             board_ctx.fillRect(food_x, food_y, 10, 10);
             board_ctx.strokeRect(food_x, food_y, 10, 10);
+        }
+
+        function drawRareFood() {
+            board_ctx.fillStyle = "yellow";
+            board_ctx.strokeStyle = "orange";
+            board_ctx.fillRect(rarefood_x, rarefood_y, 10, 10);
+            board_ctxstrokeRect(rarefood_x, rarefood_y, 10, 10);
         }
 
         // draw snake part
@@ -116,13 +128,27 @@
             return Math.round((Math.random() * (max-min) + min) / 10) * 10;
         }
 
+        function rare_chance(min, max) {
+            return Math.floor(Math.random() * 101)
+        }
+
         function gen_food() {
-            food_x = random_food(0, board.width - 10);
-            food_y = random_food(0, board.height - 10);
-            snake.forEach(function has_snake_eaten_food(part) {
-                const has_eaten = part.x == food_x && part.y == food_y;
-                if (has_eaten) gen_food();
-            });
+            if (rare_chance() >= 90) {
+                food_x = random_food(0, board.width - 10);
+                food_y = random_food(0, board.height - 10);
+                snake.forEach(function has_snake_eaten_food(part){
+                    const has_eaten_rare = part.x == food_x && part.y == food_y;
+                    if (has_eaten_rare) gen_food();
+                });
+            }
+            if (rare_chance() <= 90) {
+                food_x = random_food(0, board.width - 10);
+                food_y = random_food(0, board.height - 10);
+                snake.forEach(function has_snake_eaten_food(part) {
+                    const has_eaten = part.x == food_x && part.y == food_y;
+                    if (has_eaten) gen_food();
+                });
+            }
         }
 
         function change_direction(event) {
@@ -161,11 +187,18 @@
             const head = {x: snake[0].x + dx, y: snake[0].y + dy};
             snake.unshift(head);
             const has_eaten_food = snake[0].x === food_x && snake[0].y === food_y;
+            const has_eaten_rare = snake[0].x === food_x && snake [0].y === food_y;
             if (has_eaten_food) {
                 score += 1;
                 document.getElementById('score').innerHTML = score;
                 gen_food();
-            } else{
+            } 
+            else if (has_eaten_rare) {
+                score += 10;
+                document.getElementById('score').innerHTML = score;
+                gen_food;
+            }
+            else {
                 snake.pop();
             }   
         }
